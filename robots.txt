@@ -1,0 +1,13 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://vnikexports.com/sitemap.xml
+
+# Crawl delay for polite crawling
+Crawl-delay: 10
+
+# Block common non-content paths (if any exist in future)
+# Disallow: /private/
+# Disallow: /admin/

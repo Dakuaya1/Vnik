@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xxd)",
+      "Read(//Users/priyanshu-ai/**)",
+      "Bash(xargs -I {} sh -c 'grep -l \"remotion\" {} 2>/dev/null && echo \"{}\"')",
+      "Bash(npm install *)"
+    ]
+  }
+}
