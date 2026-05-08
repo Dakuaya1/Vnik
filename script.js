@@ -113,7 +113,7 @@ const revealEls = document.querySelectorAll(
   '.trust-item, .about-visual, .about-feature, .product-card, ' +
   '.sig-product, .pl-step, .pl-visual, .compliance-card, .globe-visual, .country-tag, ' +
   '.why-card, .contact-detail, .contact-form, .testimonial-card, ' +
-  '.value-item, .feature-card'
+  '.value-item, .feature-card, .format-card, .pl-step-card, .compliance-icon'
 );
 
 const observer = new IntersectionObserver((entries) => {
