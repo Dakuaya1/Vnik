@@ -48,7 +48,7 @@ window.addEventListener('scroll', () => {
 });
 
 // ============================================================
-// STICKY CTA
+// STICKY CTA & WHATSAPP
 // ============================================================
 const stickyCta = document.getElementById('stickyCta');
 const whatsappFloat = document.querySelector('.whatsapp-float');
@@ -59,19 +59,65 @@ window.addEventListener('scroll', () => {
 });
 
 // ============================================================
-// INTERSECTION OBSERVER — SCROLL REVEAL
+// HERO PARALLAX ON SCROLL
+// ============================================================
+const hero = document.getElementById('hero');
+const heroVideo = document.querySelector('.hero-video');
+const heroContent = document.querySelector('.hero-content');
+const heroScrollHint = document.querySelector('.hero-scroll-hint');
+
+if (hero && heroContent) {
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        const heroHeight = hero.offsetHeight;
+
+        if (scrollY < heroHeight) {
+          const progress = Math.min(scrollY / heroHeight, 1);
+
+          if (heroVideo) {
+            heroVideo.style.transform = `scale(${1.04 - progress * 0.25})`;
+          }
+
+          const contentOpacity = Math.max(0, 1 - progress * 1.8);
+          const contentY = scrollY * 0.35;
+          heroContent.style.opacity = contentOpacity;
+          heroContent.style.transform = `translateY(-${contentY}px)`;
+          heroContent.style.filter = `blur(${progress * 3}px)`;
+
+          if (heroScrollHint) {
+            heroScrollHint.style.opacity = Math.max(0, 1 - progress * 3);
+          }
+
+          document.querySelectorAll('.depth-card').forEach((card, i) => {
+            const speed = 0.015 + (i * 0.008);
+            const y = scrollY * speed;
+            const rotateX = scrollY * 0.008;
+            card.style.transform = `translateY(${y}px) perspective(1000px) rotateX(${rotateX}deg)`;
+          });
+        }
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+}
+
+// ============================================================
+// SCROLL REVEAL
 // ============================================================
 const revealEls = document.querySelectorAll(
   '.section-tag, .section-title, .gold-divider, .section-body, ' +
   '.trust-item, .about-visual, .about-feature, .product-card, ' +
   '.sig-product, .pl-step, .pl-visual, .compliance-card, .globe-visual, .country-tag, ' +
-  '.why-card, .contact-detail, .contact-form'
+  '.why-card, .contact-detail, .contact-form, .testimonial-card'
 );
 
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
-      // Stagger product cards and why cards
       const el = entry.target;
       const siblings = el.parentElement ? Array.from(el.parentElement.children) : [];
       const idx = siblings.indexOf(el);
@@ -82,7 +128,7 @@ const observer = new IntersectionObserver((entries) => {
                      el.classList.contains('about-feature') ||
                      el.classList.contains('testimonial-card'))
                     ? idx * 80 : 0;
-      
+
       setTimeout(() => el.classList.add('visible'), delay);
       observer.unobserve(el);
     }
@@ -115,168 +161,57 @@ const countObserver = new IntersectionObserver((entries) => {
 countEls.forEach(el => countObserver.observe(el));
 
 // ============================================================
-// PARALLAX LAYERS
+// SMOOTH SCROLL TO ANCHORS
 // ============================================================
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const parallaxEls = document.querySelectorAll('[data-parallax]');
-let ticking = false;
-
-function updateParallax() {
-  const y = window.scrollY;
-  parallaxEls.forEach(el => {
-    const speed = parseFloat(el.dataset.parallax || '0');
-    const rect = el.getBoundingClientRect();
-    const viewportOffset = rect.top - window.innerHeight;
-    if (viewportOffset < 200 && rect.bottom > -200) {
-      el.style.transform = `translate3d(0, ${y * speed}px, 0)`;
-    }
-  });
-  ticking = false;
-}
-
-if (!reduceMotion) {
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      requestAnimationFrame(updateParallax);
-      ticking = true;
-    }
-  });
-  updateParallax();
-}
-
-// ============================================================
-// FORM SUBMIT HANDLER
-// ============================================================
-function handleSubmit(event) {
-  event.preventDefault();
-  const form = event.currentTarget;
-  const btn = form.querySelector('.form-submit');
-  const data = new FormData(form);
-  const subject = encodeURIComponent('Vnik Export Enquiry');
-  const lines = [
-    `Name: ${data.get('name') || ''}`,
-    `Company: ${data.get('company') || ''}`,
-    `Email: ${data.get('email') || ''}`,
-    `Country: ${data.get('country') || ''}`,
-    `Product Interest: ${data.get('product') || ''}`,
-    '',
-    data.get('message') || ''
-  ];
-  window.location.href = `mailto:gentlementea@gmail.com?cc=prithviesharma@gmail.com&subject=${subject}&body=${encodeURIComponent(lines.join('\n'))}`;
-  btn.textContent = 'Opening Email...';
-  btn.style.background = '#2a6b5e';
-  btn.style.color = '#f0ebe0';
-  btn.style.letterSpacing = '0.18em';
-  setTimeout(() => {
-    btn.textContent = 'Send Enquiry →';
-    btn.style.background = '';
-    btn.style.color = '';
-  }, 3500);
-}
-
-// ============================================================
-// ACTIVE PAGE LINK
-// ============================================================
-const currentPage = document.body.dataset.page;
-if (currentPage) {
-  document.querySelectorAll(`.nav-links a[data-page="${currentPage}"]`).forEach(link => link.classList.add('active'));
-}
-
-// ============================================================
-// SMOOTH ANCHOR LINKS
-// ============================================================
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', e => {
-    const target = document.querySelector(a.getAttribute('href'));
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    const targetId = this.getAttribute('href').slice(1);
+    const target = document.getElementById(targetId);
     if (target) {
       e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth' });
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
 });
 
 // ============================================================
-// HERO ENHANCEMENTS
+// FORM HANDLING
 // ============================================================
-
-// Create floating particles
-function createHeroParticles() {
-  const container = document.getElementById('heroParticles');
-  if (!container) return;
-
-  const particleCount = 30;
-  for (let i = 0; i < particleCount; i++) {
-    const particle = document.createElement('div');
-    particle.className = 'hero-particle';
-    particle.style.left = Math.random() * 100 + '%';
-    particle.style.animationDelay = Math.random() * 10 + 's';
-    particle.style.animationDuration = (8 + Math.random() * 6) + 's';
-    container.appendChild(particle);
-  }
-}
-
-// Trigger glow burst on load
-function triggerGlowBurst() {
-  const glowBurst = document.getElementById('heroGlowBurst');
-  if (!glowBurst) return;
+function handleSubmit(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('.form-submit');
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
 
   setTimeout(() => {
-    glowBurst.classList.add('animate');
+    btn.textContent = 'Message Sent!';
+    btn.style.background = '#2ecc71';
     setTimeout(() => {
-      glowBurst.classList.remove('animate');
-    }, 1500);
-  }, 200);
+      btn.textContent = 'Send Enquiry →';
+      btn.style.background = '';
+      btn.disabled = false;
+      e.target.reset();
+    }, 2000);
+  }, 1500);
 }
 
-// Magnetic button effect
-function initMagneticButtons() {
-  const buttons = document.querySelectorAll('.btn-magnetic');
-
-  buttons.forEach(btn => {
-    btn.addEventListener('mousemove', (e) => {
-      const rect = btn.getBoundingClientRect();
-      const x = e.clientX - rect.left - rect.width / 2;
-      const y = e.clientY - rect.top - rect.height / 2;
-
-      btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px) scale(1.02)`;
-    });
-
-    btn.addEventListener('mouseleave', () => {
-      btn.style.transform = '';
-    });
+// ============================================================
+// PARALLAX LAYERS
+// ============================================================
+const depthGlows = document.querySelectorAll('.depth-glow');
+document.addEventListener('mousemove', (e) => {
+  const x = (e.clientX / window.innerWidth - 0.5) * 20;
+  const y = (e.clientY / window.innerHeight - 0.5) * 20;
+  depthGlows.forEach((glow, i) => {
+    const speed = (i + 1) * 0.5;
+    glow.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
   });
-}
-
-// Hero parallax depth effect
-function initHeroParallax() {
-  const hero = document.getElementById('hero');
-  if (!hero) return;
-
-  hero.addEventListener('mousemove', (e) => {
-    const { clientX, clientY } = e;
-    const { innerWidth, innerHeight } = window;
-
-    const xOffset = (clientX / innerWidth - 0.5) * 20;
-    const yOffset = (clientY / innerHeight - 0.5) * 20;
-
-    const showcase = hero.querySelector('.hero-showcase');
-    if (showcase) {
-      showcase.style.transform = `rotateX(${-yOffset * 0.3}deg) rotateY(${xOffset * 0.3}deg)`;
-    }
-  });
-
-  hero.addEventListener('mouseleave', () => {
-    const showcase = hero.querySelector('.hero-showcase');
-    if (showcase) {
-      showcase.style.transform = '';
-    }
-  });
-}
-
-// Initialize on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-  createHeroParticles();
-  triggerGlowBurst();
-  initMagneticButtons();
-  initHeroParallax();
 });
+
+// ============================================================
+// CONTACT FORM VALIDATION
+// ============================================================
+const contactForm = document.querySelector('.contact-form');
+if (contactForm) {
+  contactForm.addEventListener('submit', handleSubmit);
+}
