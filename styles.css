@@ -818,75 +818,205 @@ section { padding: 120px 60px; }
 .gold-divider.visible { opacity: 1; transform: scaleX(1); }
 
 /* ============================================================
-   ABOUT SECTION
+   ABOUT VNIK SECTION - Brand Story
 ============================================================ */
-#about {
-  background: linear-gradient(160deg, rgba(10,10,11,0.88) 0%, rgba(13,40,37,0.82) 100%);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 100px;
-  align-items: center;
-}
-.about-visual {
+#about-vnik {
+  background: linear-gradient(180deg, var(--cream) 0%, var(--cream-dark) 50%, var(--cream) 100%);
+  padding: 120px 60px;
   position: relative;
-  height: 560px;
-  opacity: 0;
-  transform: translateX(-40px);
-  transition: all 1s ease;
-}
-.about-visual.visible { opacity: 1; transform: translateX(0); }
-
-.about-img-main {
-  position: absolute;
-  top: 0; left: 0;
-  width: 82%;
-  height: 100%;
-  background: linear-gradient(135deg, #1a3832, #0d2521);
-  border: 1px solid var(--border);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-.about-img-main::before {
+
+#about-vnik::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: 
-    radial-gradient(circle at 30% 40%, rgba(201,162,39,0.12) 0%, transparent 60%),
-    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8a96a' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background:
+    radial-gradient(circle at 20% 20%, rgba(212,137,58,0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(46,125,107,0.06) 0%, transparent 40%);
+  pointer-events: none;
 }
 
-.about-img-icon {
-  font-size: 5rem;
-  z-index: 1;
+.about-content {
+  max-width: 1200px;
+  margin: 0 auto;
   position: relative;
-  filter: drop-shadow(0 0 30px rgba(201,162,39,0.3));
-  animation: float 4s ease-in-out infinite;
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-12px); }
+  z-index: 1;
 }
 
-.about-img-badge {
-  position: absolute;
-  bottom: 30px;
-  right: 0;
-  background: var(--accent-primary);
-  color: var(--bg-primary);
-  padding: 20px 28px;
-  font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  font-size: 1.1rem;
+.about-header {
+  text-align: center;
+  margin-bottom: 80px;
 }
-.about-img-badge span {
-  display: block;
-  font-family: 'Jost', sans-serif;
-  font-size: 0.65rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+
+.about-intro {
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: var(--text-medium);
+  max-width: 800px;
+  margin: 30px auto 0;
+  text-align: center;
+}
+
+/* Values Section */
+.about-values {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+  margin-bottom: 80px;
+}
+
+.value-item {
+  text-align: center;
+  padding: 40px 30px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--border-light);
+  transition: all 0.4s ease;
+}
+
+.value-item:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-medium);
+}
+
+.value-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(212,137,58,0.1), rgba(46,125,107,0.08));
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.value-icon svg {
+  width: 32px;
+  height: 32px;
+  color: var(--amber);
+}
+
+.value-item:hover .value-icon {
+  background: linear-gradient(135deg, rgba(212,137,58,0.2), rgba(46,125,107,0.15));
+  transform: scale(1.1);
+}
+
+.value-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 12px;
+}
+
+.value-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* Features Grid */
+.about-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.feature-card {
+  padding: 36px 28px;
+  background: linear-gradient(135deg, rgba(212,137,58,0.06), rgba(46,125,107,0.04));
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  text-align: center;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--amber), var(--teal));
+  transition: width 0.4s ease;
+}
+
+.feature-card:hover::before {
+  width: 100%;
+}
+
+.feature-card:hover {
+  background: white;
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-4px);
+}
+
+.feature-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(212,137,58,0.1);
+  transition: all 0.3s ease;
+}
+
+.feature-icon svg {
+  width: 28px;
+  height: 28px;
+  color: var(--amber);
+}
+
+.feature-card:hover .feature-icon {
+  background: linear-gradient(135deg, var(--amber), var(--terracotta));
+}
+
+.feature-card:hover .feature-icon svg {
+  color: white;
+}
+
+.feature-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 10px;
+}
+
+.feature-text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  #about-vnik {
+    padding: 80px 30px;
+  }
+  .about-values,
+  .about-features {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .about-header {
+    margin-bottom: 50px;
+  }
+}
+
+/* ============================================================
+   PRODUCTS SECTION
+============================================================ */
   margin-top: 4px;
   opacity: 0.7;
 }

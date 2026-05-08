@@ -62,7 +62,7 @@ window.addEventListener('scroll', () => {
 // HERO PARALLAX ON SCROLL
 // ============================================================
 const hero = document.getElementById('hero');
-const heroVideo = document.querySelector('.hero-video');
+const heroBgImage = document.querySelector('.hero-bg-image');
 const heroContent = document.querySelector('.hero-content');
 const heroScrollHint = document.querySelector('.hero-scroll-hint');
 
@@ -77,8 +77,8 @@ if (hero && heroContent) {
         if (scrollY < heroHeight) {
           const progress = Math.min(scrollY / heroHeight, 1);
 
-          if (heroVideo) {
-            heroVideo.style.transform = `scale(${1.04 - progress * 0.25})`;
+          if (heroBgImage) {
+            heroBgImage.style.transform = `scale(${1.02 + progress * 0.08})`;
           }
 
           const contentOpacity = Math.max(0, 1 - progress * 1.8);
@@ -112,7 +112,8 @@ const revealEls = document.querySelectorAll(
   '.section-tag, .section-title, .gold-divider, .section-body, ' +
   '.trust-item, .about-visual, .about-feature, .product-card, ' +
   '.sig-product, .pl-step, .pl-visual, .compliance-card, .globe-visual, .country-tag, ' +
-  '.why-card, .contact-detail, .contact-form, .testimonial-card'
+  '.why-card, .contact-detail, .contact-form, .testimonial-card, ' +
+  '.value-item, .feature-card'
 );
 
 const observer = new IntersectionObserver((entries) => {
@@ -126,8 +127,10 @@ const observer = new IntersectionObserver((entries) => {
                      el.classList.contains('country-tag') ||
                      el.classList.contains('compliance-card') ||
                      el.classList.contains('about-feature') ||
-                     el.classList.contains('testimonial-card'))
-                    ? idx * 80 : 0;
+                     el.classList.contains('testimonial-card') ||
+                     el.classList.contains('value-item') ||
+                     el.classList.contains('feature-card'))
+                    ? idx * 100 : 0;
 
       setTimeout(() => el.classList.add('visible'), delay);
       observer.unobserve(el);
