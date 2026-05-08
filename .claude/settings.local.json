@@ -4,7 +4,19 @@
       "Bash(xxd)",
       "Read(//Users/priyanshu-ai/**)",
       "Bash(xargs -I {} sh -c 'grep -l \"remotion\" {} 2>/dev/null && echo \"{}\"')",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(mkdir -p /Users/priyanshu-ai/Desktop/Vniki/docs/superpowers/plans)",
+      "Bash(mkdir -p /Users/priyanshu-ai/Desktop/Umbrella/data)",
+      "Bash(node scripts/compile-data.js)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(npm run *)",
+      "WebFetch(domain:bramhacorp.in)",
+      "WebFetch(domain:drive.google.com)"
+    ],
+    "additionalDirectories": [
+      "/Users/priyanshu-ai/Desktop/Vniki/docs/superpowers",
+      "/Users/priyanshu-ai/Desktop/Umbrella"
     ]
   }
 }
