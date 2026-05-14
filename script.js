@@ -72,6 +72,7 @@ if (navHamburger && navMobileOverlay) {
 // ============================================================
 const progressBar = document.getElementById('progress-bar');
 window.addEventListener('scroll', () => {
+  if (!progressBar) return;
   const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
   const scrolled = maxScroll > 0 ? (window.scrollY / maxScroll) * 100 : 0;
   progressBar.style.width = scrolled + '%';

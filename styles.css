@@ -1110,40 +1110,6 @@ section { padding: 120px 60px; }
 /* ============================================================
    PRODUCTS SECTION
 ============================================================ */
-  margin-top: 4px;
-  opacity: 0.7;
-}
-
-.about-text { }
-.about-features {
-  margin-top: 48px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-.about-feature {
-  padding: 20px;
-  border: 1px solid var(--border);
-  background: rgba(201,162,39,0.03);
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.7s ease;
-}
-.about-feature.visible { opacity: 1; transform: translateY(0); }
-.about-feature:hover { background: var(--champagne-dim); border-color: rgba(201,162,39,0.35); }
-.af-icon { font-size: 1.4rem; margin-bottom: 10px; }
-.af-title {
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accent-primary);
-  margin-bottom: 6px;
-}
-.af-body { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
-
-/* ============================================================
-   PRODUCTS SECTION
-============================================================ */
 #products {
   background: rgba(6,15,14,0.86);
   text-align: center;
