@@ -17,7 +17,10 @@
     renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
     renderer.toneMapping       = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.5;
-    renderer.outputEncoding    = THREE.sRGBEncoding;
+
+    if (location.protocol === 'file:') {
+      console.warn('hero3d: FBX files cannot load over file:// (CORS). Run: python3 -m http.server 8080');
+    }
 
     /* ── Scene & Camera ───────────────────────────────────── */
     const scene  = new THREE.Scene();
@@ -155,7 +158,16 @@
           loaded++;
         },
         undefined,
-        (err) => console.error('FBX load error:', cfg.file, err)
+        (err) => {
+          console.error('FBX load error:', cfg.file, err);
+          // Fallback: show a simple placeholder mesh so scene is not empty
+          const fallback = new THREE.Mesh(
+            new THREE.SphereGeometry(0.4, 10, 10),
+            new THREE.MeshStandardMaterial({ color: 0xD4893A, roughness: 0.7 })
+          );
+          fallback.position.set(...cfg.pos);
+          group.add(fallback);
+        }
       );
     });
 

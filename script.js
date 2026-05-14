@@ -129,11 +129,12 @@ if (hero && heroContent) {
         `scale(${1.02 + eased * 0.26}) translateY(${eased * -2.5}vh)`;
     }
 
-    // ── Hero text: fade + recede into 3-D depth ─────────────────
+    // ── Hero text: 3-D tilt on mouse, recede into depth on scroll ─
     heroContent.style.opacity   = Math.max(0, 1 - progress * 1.5).toFixed(3);
     heroContent.style.transform =
       `translate3d(0, -${scrollY * 0.14}px, ${eased * -140}px)
-       rotateX(${eased * 5}deg)
+       rotateX(${eased * 5 - mouseNY * 3}deg)
+       rotateY(${mouseNX * 4}deg)
        scale(${1 - eased * 0.06})`;
     heroContent.style.filter    = `blur(${eased * 4}px)`;
 
