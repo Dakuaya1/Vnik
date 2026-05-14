@@ -132,7 +132,7 @@ if (hero && heroContent) {
     // ── Hero text: fade + recede into 3-D depth ─────────────────
     heroContent.style.opacity   = Math.max(0, 1 - progress * 1.5).toFixed(3);
     heroContent.style.transform =
-      `translate3d(${mouseNX * 6}px, calc(-${scrollY * 0.14}px + ${mouseNY * 4}px), ${eased * -140}px)
+      `translate3d(0, -${scrollY * 0.14}px, ${eased * -140}px)
        rotateX(${eased * 5}deg)
        scale(${1 - eased * 0.06})`;
     heroContent.style.filter    = `blur(${eased * 4}px)`;
