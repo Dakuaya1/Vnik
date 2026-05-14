@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="assets/logo-golden.png">
 <link rel="stylesheet" href="styles.css">
-<script src="script.js" defer></script>
+<script src="script.js?v=20260514-depth" defer></script>
 </head>
 <body class="subpage" data-page="contact">
 <div id="progress-bar"></div>
@@ -47,7 +47,7 @@
       <div class="section-tag-line"></div>
       <span>Get In Touch</span>
     </div>
-    <h2 class="section-title">Start Your <em>Export Journey</em></h2>
+    <h1 class="section-title">Start Your <em>Export Journey</em></h1>
     <div class="gold-divider"></div>
     <p class="section-body">
       Tell us what you need and Vnik will help shape the product, packaging, compliance documents and shipping plan for your market.
@@ -96,27 +96,27 @@
   <form class="contact-form" onsubmit="handleSubmit(event)">
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Your Name</label>
-        <input type="text" class="form-input" name="name" placeholder="John Smith">
+        <label class="form-label" for="name">Your Name</label>
+        <input type="text" class="form-input" id="name" name="name" placeholder="John Smith" autocomplete="name" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Company</label>
-        <input type="text" class="form-input" name="company" placeholder="Acme Imports Ltd.">
+        <label class="form-label" for="company">Company</label>
+        <input type="text" class="form-input" id="company" name="company" placeholder="Acme Imports Ltd." autocomplete="organization">
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-input" name="email" placeholder="john@company.com">
+        <label class="form-label" for="email">Email</label>
+        <input type="email" class="form-input" id="email" name="email" placeholder="john@company.com" autocomplete="email" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Country</label>
-        <input type="text" class="form-input" name="country" placeholder="United States">
+        <label class="form-label" for="country">Country</label>
+        <input type="text" class="form-input" id="country" name="country" placeholder="United States" autocomplete="country-name">
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Product Interest</label>
-      <select class="form-select" name="product">
+      <label class="form-label" for="product">Product Interest</label>
+      <select class="form-select" id="product" name="product" required>
         <option value="">Select a category</option>
         <option>Darjeeling Single Origin Tea</option>
         <option>Assam Single Origin Tea</option>
@@ -131,10 +131,11 @@
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">Your Message</label>
-      <textarea class="form-textarea" name="message" placeholder="Tell us about your requirements — quantity, destination, packaging format, timeline, and any documentation needed..."></textarea>
+      <label class="form-label" for="message">Your Message</label>
+      <textarea class="form-textarea" id="message" name="message" placeholder="Tell us about your requirements — quantity, destination, packaging format, timeline, and any documentation needed..." required></textarea>
     </div>
     <button class="form-submit" type="submit">Send Enquiry →</button>
+    <p class="form-status" role="status" aria-live="polite"></p>
   </form>
   <div class="contact-trust">
     <div class="trust-item-inline">

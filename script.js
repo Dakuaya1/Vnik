@@ -12,20 +12,58 @@ if (spotlight) {
 // ============================================================
 // HAMBURGER MENU
 // ============================================================
-const navHamburger = document.getElementById('navHamburger');
-const navMobileOverlay = document.getElementById('navMobileOverlay');
+let navHamburger = document.getElementById('navHamburger');
+let navMobileOverlay = document.getElementById('navMobileOverlay');
+const nav = document.getElementById('navbar');
+
+if (nav && !navHamburger) {
+  navHamburger = document.createElement('button');
+  navHamburger.className = 'nav-hamburger';
+  navHamburger.id = 'navHamburger';
+  navHamburger.type = 'button';
+  navHamburger.setAttribute('aria-label', 'Open menu');
+  navHamburger.innerHTML = '<span></span><span></span><span></span>';
+  nav.appendChild(navHamburger);
+}
+
+if (nav && !navMobileOverlay) {
+  navMobileOverlay = document.createElement('div');
+  navMobileOverlay.className = 'nav-mobile-overlay';
+  navMobileOverlay.id = 'navMobileOverlay';
+  const navLinks = nav.querySelectorAll('.nav-links a');
+  navMobileOverlay.innerHTML = Array.from(navLinks)
+    .map(link => `<a href="${link.getAttribute('href')}">${link.textContent.trim()}</a>`)
+    .join('');
+  nav.insertAdjacentElement('afterend', navMobileOverlay);
+}
+
 if (navHamburger && navMobileOverlay) {
+  navMobileOverlay.setAttribute('aria-hidden', 'true');
+  navHamburger.setAttribute('aria-controls', navMobileOverlay.id);
+  navHamburger.setAttribute('aria-expanded', 'false');
+
+  const closeMobileMenu = () => {
+    navHamburger.classList.remove('open');
+    navMobileOverlay.classList.remove('open');
+    navMobileOverlay.setAttribute('aria-hidden', 'true');
+    navHamburger.setAttribute('aria-expanded', 'false');
+    navHamburger.setAttribute('aria-label', 'Open menu');
+    document.body.style.overflow = '';
+  };
+
   navHamburger.addEventListener('click', () => {
     const isOpen = navHamburger.classList.toggle('open');
     navMobileOverlay.classList.toggle('open', isOpen);
+    navMobileOverlay.setAttribute('aria-hidden', String(!isOpen));
+    navHamburger.setAttribute('aria-expanded', String(isOpen));
+    navHamburger.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
     document.body.style.overflow = isOpen ? 'hidden' : '';
   });
   navMobileOverlay.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      navHamburger.classList.remove('open');
-      navMobileOverlay.classList.remove('open');
-      document.body.style.overflow = '';
-    });
+    link.addEventListener('click', closeMobileMenu);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMobileMenu();
   });
 }
 
@@ -42,9 +80,8 @@ window.addEventListener('scroll', () => {
 // ============================================================
 // NAVBAR SCROLL
 // ============================================================
-const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
-  navbar.classList.toggle('scrolled', window.scrollY > 80);
+  nav?.classList.toggle('scrolled', window.scrollY > 80);
 });
 
 // ============================================================
@@ -65,44 +102,92 @@ const hero = document.getElementById('hero');
 const heroBgImage = document.querySelector('.hero-bg-image');
 const heroContent = document.querySelector('.hero-content');
 const heroScrollHint = document.querySelector('.hero-scroll-hint');
+const heroDepthSpace = document.getElementById('heroDepthSpace');
+const heroDepthPlanes = document.querySelectorAll('.hero-depth-plane');
+const trustStrip = document.getElementById('trust');
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 if (hero && heroContent) {
   let ticking = false;
-  window.addEventListener('scroll', () => {
+  const renderHeroDepth = () => {
+    const scrollY = window.scrollY;
+    const heroHeight = hero.offsetHeight;
+    const progress = Math.min(Math.max(scrollY / Math.max(heroHeight, 1), 0), 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const mobile = window.innerWidth < 700;
+
+    hero.style.setProperty('--hero-progress', progress.toFixed(3));
+
+    if (heroBgImage) {
+      heroBgImage.style.transform = `scale(${1.02 + eased * 0.16}) translateY(${eased * -3}vh)`;
+    }
+
+    const contentOpacity = Math.max(0, 1 - progress * 1.25);
+    const contentY = scrollY * 0.28;
+    heroContent.style.opacity = contentOpacity;
+    heroContent.style.transform = `translate3d(0, -${contentY}px, ${eased * 90}px) scale(${1 + eased * 0.035})`;
+    heroContent.style.filter = `blur(${eased * 2.4}px)`;
+
+    if (heroScrollHint) {
+      heroScrollHint.style.opacity = Math.max(0, 1 - progress * 3);
+    }
+
+    if (heroDepthSpace && !reducedMotion) {
+      heroDepthSpace.style.transform = `translate3d(0, ${eased * -8}vh, ${eased * 160}px) rotateX(${eased * 2}deg)`;
+      heroDepthPlanes.forEach((plane, i) => {
+        const baseX = Number(plane.dataset.x || 0);
+        const baseY = Number(plane.dataset.y || 0);
+        const baseZ = Number(plane.dataset.z || -400);
+        const baseRx = Number(plane.dataset.rx || 0);
+        const baseRy = Number(plane.dataset.ry || 0);
+        const baseRz = Number(plane.dataset.rz || 0);
+        const baseScale = Number(plane.dataset.scale || 1);
+        const speed = Number(plane.dataset.speed || 1);
+        const phase = i * 0.18;
+        const z = baseZ + eased * 760 * speed;
+        const y = baseY - eased * 20 + Math.sin((progress + phase) * Math.PI) * 4;
+        const x = baseX + Math.sin((progress * 2.2) + i) * 2.5;
+        const scale = baseScale + eased * (mobile ? 0.26 : 0.42);
+        const opacity = Math.max(0, Math.min(mobile ? 0.32 : 0.78, 0.2 + (1 - Math.abs(progress - 0.48 - phase * 0.18)) * 0.62));
+
+        plane.style.opacity = opacity.toFixed(2);
+        plane.style.transform = [
+          `translate3d(calc(-50% + ${x}vw), calc(-50% + ${y}vh), ${z}px)`,
+          `rotateX(${baseRx - eased * baseRx * 0.75}deg)`,
+          `rotateY(${baseRy - eased * baseRy * 1.25}deg)`,
+          `rotateZ(${baseRz + eased * (i % 2 ? -8 : 8)}deg)`,
+          `scale(${scale})`
+        ].join(' ');
+      });
+    }
+
+    if (trustStrip) {
+      const trustScale = 0.96 + eased * 0.04;
+      trustStrip.style.transform = `translateY(${(1 - eased) * 22}px) rotateX(${(1 - eased) * 5}deg) scale(${trustScale})`;
+      trustStrip.style.transformOrigin = 'center top';
+    }
+
+    document.querySelectorAll('.depth-card').forEach((card, i) => {
+      const speed = 0.015 + (i * 0.008);
+      const y = scrollY * speed;
+      const rotateX = scrollY * 0.008;
+      card.style.transform = `translateY(${y}px) perspective(1000px) rotateX(${rotateX}deg)`;
+    });
+  };
+
+  const queueHeroDepthRender = () => {
     if (!ticking) {
       requestAnimationFrame(() => {
-        const scrollY = window.scrollY;
-        const heroHeight = hero.offsetHeight;
-
-        if (scrollY < heroHeight) {
-          const progress = Math.min(scrollY / heroHeight, 1);
-
-          if (heroBgImage) {
-            heroBgImage.style.transform = `scale(${1.02 + progress * 0.08})`;
-          }
-
-          const contentOpacity = Math.max(0, 1 - progress * 1.8);
-          const contentY = scrollY * 0.35;
-          heroContent.style.opacity = contentOpacity;
-          heroContent.style.transform = `translateY(-${contentY}px)`;
-          heroContent.style.filter = `blur(${progress * 3}px)`;
-
-          if (heroScrollHint) {
-            heroScrollHint.style.opacity = Math.max(0, 1 - progress * 3);
-          }
-
-          document.querySelectorAll('.depth-card').forEach((card, i) => {
-            const speed = 0.015 + (i * 0.008);
-            const y = scrollY * speed;
-            const rotateX = scrollY * 0.008;
-            card.style.transform = `translateY(${y}px) perspective(1000px) rotateX(${rotateX}deg)`;
-          });
-        }
+        renderHeroDepth();
         ticking = false;
       });
       ticking = true;
     }
-  });
+  };
+
+  renderHeroDepth();
+  window.addEventListener('scroll', queueHeroDepthRender, { passive: true });
+  window.addEventListener('resize', queueHeroDepthRender);
 }
 
 // ============================================================
@@ -183,18 +268,41 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 function handleSubmit(e) {
   e.preventDefault();
   const btn = e.target.querySelector('.form-submit');
-  btn.textContent = 'Sending...';
+  const status = e.target.querySelector('.form-status');
+
+  if (!e.target.checkValidity()) {
+    e.target.reportValidity();
+    return;
+  }
+
+  const formData = new FormData(e.target);
+  const subject = `Vnik export enquiry from ${formData.get('name') || 'website visitor'}`;
+  const body = [
+    'New Vnik export enquiry',
+    '',
+    `Name: ${formData.get('name') || ''}`,
+    `Company: ${formData.get('company') || ''}`,
+    `Email: ${formData.get('email') || ''}`,
+    `Country: ${formData.get('country') || ''}`,
+    `Product Interest: ${formData.get('product') || ''}`,
+    '',
+    'Message:',
+    formData.get('message') || ''
+  ].join('\n');
+
+  const mailtoUrl = `mailto:gentlementea@gmail.com,prithviesharma@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  btn.textContent = 'Opening Email App...';
   btn.disabled = true;
+  if (status) {
+    status.textContent = 'Your email app is opening with the enquiry details prefilled.';
+  }
+
+  window.location.href = mailtoUrl;
 
   setTimeout(() => {
-    btn.textContent = 'Message Sent!';
-    btn.style.background = '#2ecc71';
-    setTimeout(() => {
-      btn.textContent = 'Send Enquiry →';
-      btn.style.background = '';
-      btn.disabled = false;
-      e.target.reset();
-    }, 2000);
+    btn.textContent = 'Send Enquiry →';
+    btn.disabled = false;
   }, 1500);
 }
 
