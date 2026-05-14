@@ -1,13 +1,16 @@
 // ============================================================
-// CURSOR SPOTLIGHT
+// CURSOR SPOTLIGHT + SHARED MOUSE TRACKING
 // ============================================================
 const spotlight = document.getElementById('cursorSpotlight');
-if (spotlight) {
-  document.addEventListener('mousemove', (e) => {
+let mouseNX = 0, mouseNY = 0; // normalised -1..1
+document.addEventListener('mousemove', (e) => {
+  mouseNX = (e.clientX / window.innerWidth  - 0.5) * 2;
+  mouseNY = (e.clientY / window.innerHeight - 0.5) * 2;
+  if (spotlight) {
     document.documentElement.style.setProperty('--cursor-x', e.clientX + 'px');
     document.documentElement.style.setProperty('--cursor-y', e.clientY + 'px');
-  });
-}
+  }
+});
 
 // ============================================================
 // HAMBURGER MENU
@@ -110,78 +113,115 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matc
 
 if (hero && heroContent) {
   let ticking = false;
+
   const renderHeroDepth = () => {
     const scrollY = window.scrollY;
-    const heroHeight = hero.offsetHeight;
-    const progress = Math.min(Math.max(scrollY / Math.max(heroHeight, 1), 0), 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    const mobile = window.innerWidth < 700;
+    const heroH  = hero.offsetHeight;
+    const progress = Math.min(Math.max(scrollY / Math.max(heroH, 1), 0), 1);
+    const eased   = 1 - Math.pow(1 - progress, 2.6);
+    const mobile  = window.innerWidth < 700;
 
     hero.style.setProperty('--hero-progress', progress.toFixed(3));
 
+    // ── Background: slow zoom driven by scroll ──────────────────
     if (heroBgImage) {
-      heroBgImage.style.transform = `scale(${1.02 + eased * 0.16}) translateY(${eased * -3}vh)`;
+      heroBgImage.style.transform =
+        `scale(${1.02 + eased * 0.26}) translateY(${eased * -2.5}vh)`;
     }
 
-    const contentOpacity = Math.max(0, 1 - progress * 1.25);
-    const contentY = scrollY * 0.28;
-    heroContent.style.opacity = contentOpacity;
-    heroContent.style.transform = `translate3d(0, -${contentY}px, ${eased * 90}px) scale(${1 + eased * 0.035})`;
-    heroContent.style.filter = `blur(${eased * 2.4}px)`;
+    // ── Hero text: fade + recede into 3-D depth ─────────────────
+    heroContent.style.opacity   = Math.max(0, 1 - progress * 1.5).toFixed(3);
+    heroContent.style.transform =
+      `translate3d(${mouseNX * 6}px, calc(-${scrollY * 0.14}px + ${mouseNY * 4}px), ${eased * -140}px)
+       rotateX(${eased * 5}deg)
+       scale(${1 - eased * 0.06})`;
+    heroContent.style.filter    = `blur(${eased * 4}px)`;
 
-    if (heroScrollHint) {
-      heroScrollHint.style.opacity = Math.max(0, 1 - progress * 3);
-    }
+    if (heroScrollHint)
+      heroScrollHint.style.opacity = Math.max(0, 1 - progress * 5).toFixed(3);
 
+    // ── 3-D camera fly-through: planes rush toward the viewer ───
     if (heroDepthSpace && !reducedMotion) {
-      heroDepthSpace.style.transform = `translate3d(0, ${eased * -8}vh, ${eased * 160}px) rotateX(${eased * 2}deg)`;
-      heroDepthPlanes.forEach((plane, i) => {
-        const baseX = Number(plane.dataset.x || 0);
-        const baseY = Number(plane.dataset.y || 0);
-        const baseZ = Number(plane.dataset.z || -400);
-        const baseRx = Number(plane.dataset.rx || 0);
-        const baseRy = Number(plane.dataset.ry || 0);
-        const baseRz = Number(plane.dataset.rz || 0);
-        const baseScale = Number(plane.dataset.scale || 1);
-        const speed = Number(plane.dataset.speed || 1);
-        const phase = i * 0.18;
-        const z = baseZ + eased * 760 * speed;
-        const y = baseY - eased * 20 + Math.sin((progress + phase) * Math.PI) * 4;
-        const x = baseX + Math.sin((progress * 2.2) + i) * 2.5;
-        const scale = baseScale + eased * (mobile ? 0.26 : 0.42);
-        const opacity = Math.max(0, Math.min(mobile ? 0.32 : 0.78, 0.2 + (1 - Math.abs(progress - 0.48 - phase * 0.18)) * 0.62));
+      // Scene tilts with scroll + mouse look-around
+      const tiltX = mouseNY * 7 + eased * 3;
+      const tiltY = mouseNX * -10;
+      heroDepthSpace.style.transform =
+        `rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateZ(${eased * 200}px)`;
 
-        plane.style.opacity = opacity.toFixed(2);
+      heroDepthPlanes.forEach((plane, i) => {
+        const bX    = Number(plane.dataset.x     || 0);
+        const bY    = Number(plane.dataset.y     || 0);
+        const bZ    = Number(plane.dataset.z     || -400);
+        const bRx   = Number(plane.dataset.rx    || 0);
+        const bRy   = Number(plane.dataset.ry    || 0);
+        const bRz   = Number(plane.dataset.rz    || 0);
+        const bSc   = Number(plane.dataset.scale || 1);
+        const speed = Number(plane.dataset.speed || 1);
+
+        // Camera advances: planes fly from deep-z toward viewer
+        const advance = eased * 740 * speed;
+        const z = bZ + advance;
+
+        // Proximity 0=far, 1=at-camera
+        const prox = Math.max(0, Math.min(1, (z + 700) / 700));
+
+        // X/Y drift + mouse look parallax
+        const drift = 1 - prox * 0.55;
+        const wave  = Math.sin(progress * Math.PI * 2 + i * 1.1) * 0.9;
+        const x = bX * drift + wave + mouseNX * (5 - i * 0.8);
+        const y = bY * drift           + mouseNY * (4 - i * 0.6);
+
+        // Rotations unwind as plane approaches
+        const unwind = 1 - eased * 0.92;
+        const rx = bRx * unwind;
+        const ry = bRy * unwind;
+        const rz = bRz * unwind + eased * (i % 2 ? -7 : 7);
+
+        // Scale grows with proximity
+        const sc = bSc * (0.88 + prox * 0.58);
+
+        // Opacity peaks at ideal viewing distance, fades when too close
+        let op = 0;
+        if      (z < -55) op = Math.min(0.85, (-z - 55) / 260);
+        else if (z <  0 ) op = Math.max(0,    (-z) / 55) * 0.3;
+
+        plane.style.opacity   = op.toFixed(3);
         plane.style.transform = [
           `translate3d(calc(-50% + ${x}vw), calc(-50% + ${y}vh), ${z}px)`,
-          `rotateX(${baseRx - eased * baseRx * 0.75}deg)`,
-          `rotateY(${baseRy - eased * baseRy * 1.25}deg)`,
-          `rotateZ(${baseRz + eased * (i % 2 ? -8 : 8)}deg)`,
-          `scale(${scale})`
+          `rotateX(${rx}deg)`,
+          `rotateY(${ry}deg)`,
+          `rotateZ(${rz}deg)`,
+          `scale(${sc})`
         ].join(' ');
       });
     }
 
+    // ── Trust strip: 3-D rise from below ───────────────────────
     if (trustStrip) {
-      const trustScale = 0.96 + eased * 0.04;
-      trustStrip.style.transform = `translateY(${(1 - eased) * 22}px) rotateX(${(1 - eased) * 5}deg) scale(${trustScale})`;
+      const tp = Math.max(0, Math.min(1, (progress - 0.62) / 0.38));
+      const te = 1 - Math.pow(1 - tp, 2.5);
+      trustStrip.style.transform =
+        `perspective(700px)
+         translateY(${(1 - te) * 55}px)
+         translateZ(${(te - 1) * 90}px)
+         rotateX(${(1 - te) * 12}deg)
+         scale(${0.92 + te * 0.08})`;
       trustStrip.style.transformOrigin = 'center top';
     }
 
+    // ── Background depth-cards: multi-axis parallax ─────────────
     document.querySelectorAll('.depth-card').forEach((card, i) => {
-      const speed = 0.015 + (i * 0.008);
-      const y = scrollY * speed;
-      const rotateX = scrollY * 0.008;
-      card.style.transform = `translateY(${y}px) perspective(1000px) rotateX(${rotateX}deg)`;
+      const tY  = scrollY * (0.014 + i * 0.007);
+      const rX  = scrollY * 0.007 * (i % 2 ? 1 : -1);
+      const rZ  = mouseNX * (2 + i * 0.6);
+      card.style.transform =
+        `translateY(${tY}px) perspective(900px) rotateX(${rX}deg) rotateZ(${rZ}deg)`;
     });
   };
 
   const queueHeroDepthRender = () => {
     if (!ticking) {
-      requestAnimationFrame(() => {
-        renderHeroDepth();
-        ticking = false;
-      });
+      requestAnimationFrame(() => { renderHeroDepth(); ticking = false; });
       ticking = true;
     }
   };
@@ -189,6 +229,8 @@ if (hero && heroContent) {
   renderHeroDepth();
   window.addEventListener('scroll', queueHeroDepthRender, { passive: true });
   window.addEventListener('resize', queueHeroDepthRender);
+  // Re-render on mouse move so look-around feels live
+  document.addEventListener('mousemove', queueHeroDepthRender, { passive: true });
 }
 
 // ============================================================
@@ -308,12 +350,12 @@ function handleSubmit(e) {
 }
 
 // ============================================================
-// PARALLAX LAYERS
+// PARALLAX LAYERS (uses shared mouseNX/mouseNY)
 // ============================================================
 const depthGlows = document.querySelectorAll('.depth-glow');
-document.addEventListener('mousemove', (e) => {
-  const x = (e.clientX / window.innerWidth - 0.5) * 20;
-  const y = (e.clientY / window.innerHeight - 0.5) * 20;
+document.addEventListener('mousemove', () => {
+  const x = mouseNX * 10;
+  const y = mouseNY * 10;
   depthGlows.forEach((glow, i) => {
     const speed = (i + 1) * 0.5;
     glow.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
