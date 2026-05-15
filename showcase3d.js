@@ -17,7 +17,29 @@ const SPICES  = [
   { file:'cloves.glb',      name:'Cloves',       origin:'Zanzibar'       },
   { file:'blackpepper.glb', name:'Black Pepper', origin:'Malabar Coast'  },
 ];
-const WINDOWS = [[-0.15,0.38],[0.18,0.62],[0.45,0.82],[0.68,1.10]];
+const WINDOWS  = [[-0.15,0.38],[0.18,0.62],[0.45,0.82],[0.68,1.10]];
+const CALLOUTS  = [
+  {
+    tag:'Premium Export', headline:'Green Gold of Kerala',
+    desc:'Hand-selected pods at peak ripeness, bold aroma, high essential oil content.',
+    specs:[['Moisture','≤ 12%'],['Grade','AGMARK'],['Form','Whole Green Pods']]
+  },
+  {
+    tag:'True Ceylon', headline:'Single-Origin Cinnamon',
+    desc:'Delicate quills prized for low coumarin content, sweet warmth, and floral depth.',
+    specs:[['Type','C. verum'],['Quill Grade','C4–C5'],['Coumarin','< 0.05%']]
+  },
+  {
+    tag:'Dual-Origin', headline:'Whole Aromatic Cloves',
+    desc:'Sun-dried cloves with high eugenol content, FSSAI and APEDA certified.',
+    specs:[['Oil Content','≥ 15%'],['Moisture','≤ 12%'],['Cert','FSSAI + APEDA']]
+  },
+  {
+    tag:'Malabar Coast', headline:'Bold Black Pepper',
+    desc:'Pungent whole peppercorns from India's pepper coast — globally trusted since antiquity.',
+    specs:[['Bold Grade','≥ 4.5 mm'],['Piperine','≥ 5%'],['Moisture','≤ 12%']]
+  },
+];
 
 const lerp  = (a,b,t) => a+(b-a)*t;
 const easeO = t => 1-Math.pow(1-t,3);
@@ -166,6 +188,36 @@ SPICES.forEach((sp, i) => {
 const nameEl   = document.getElementById('showcaseSpiceName');
 const originEl = document.getElementById('showcaseSpiceOrigin');
 const dots     = [...document.querySelectorAll('#showcaseDots .dot')];
+
+/* Callout DOM */
+const calloutL  = document.getElementById('calloutLeft');
+const calloutR  = document.getElementById('calloutRight');
+const coTag     = document.getElementById('calloutTag');
+const coHead    = document.getElementById('calloutHeadline');
+const coDesc    = document.getElementById('calloutDesc');
+const coSpecs   = document.getElementById('calloutSpecs');
+
+let lastCallout = -1;
+function showCallout(i) {
+  if (i === lastCallout) return;
+  lastCallout = i;
+  const c = CALLOUTS[i];
+  if (coTag)  coTag.textContent  = c.tag;
+  if (coHead) coHead.textContent = c.headline;
+  if (coDesc) coDesc.textContent = c.desc;
+  if (coSpecs) {
+    coSpecs.innerHTML = c.specs.map(([l,v]) =>
+      `<li><span class="spec-label">${l}</span><span class="spec-val">${v}</span></li>`
+    ).join('');
+  }
+  calloutL?.classList.add('visible');
+  calloutR?.classList.add('visible');
+}
+function hideCallout() {
+  calloutL?.classList.remove('visible');
+  calloutR?.classList.remove('visible');
+  lastCallout = -1;
+}
 let lastLabel  = -1;
 function setLabel(i) {
   if (i === lastLabel) return; lastLabel = i;
@@ -232,6 +284,13 @@ const clock = new THREE.Clock();
   });
 
   if (bestOp > 0.3) setLabel(bestI);
+
+  /* Callout: show during spin phase, hide when entering/exiting */
+  const [blo, bhi] = WINDOWS[bestI];
+  const blp = map(prog, blo, bhi);
+  const isSpinning = blp >= 0.26 && blp <= 0.74 && bestOp > 0.75;
+  if (isSpinning) showCallout(bestI);
+  else            hideCallout();
 
   // Specular point light follows the camera slightly for dynamic highlights
   specPt.position.set(3 + Math.sin(t*0.3)*2, 6, 5 + Math.cos(t*0.2));
