@@ -1,18 +1,23 @@
-/* showcase3d.js — Scroll-driven spice 3D showcase (GLB/GLTF) */
+/* showcase3d.js — Scroll-driven spice 3D showcase | cinematic PBR lighting */
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { GLTFLoader }               from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment }          from 'three/addons/environments/RoomEnvironment.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import { EffectComposer }           from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }               from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass }          from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass }               from 'three/addons/postprocessing/OutputPass.js';
 
-/* ── Config — update file names to match your GLB files ── */
-const SPICES = [
+RectAreaLightUniformsLib.init();
+
+/* ── Config ─────────────────────────────────── */
+const SPICES  = [
   { file:'cardamom.glb',    name:'Cardamom',     origin:'Kerala, India'  },
   { file:'cinnimom.glb',    name:'Cinnamon',     origin:'Sri Lanka'      },
   { file:'cloves.glb',      name:'Cloves',       origin:'Zanzibar'       },
   { file:'blackpepper.glb', name:'Black Pepper', origin:'Malabar Coast'  },
 ];
-
-/* Scroll window [lo, hi] per model — lo<0 so model 0 visible on arrival */
 const WINDOWS = [[-0.15,0.38],[0.18,0.62],[0.45,0.82],[0.68,1.10]];
-const COLORS  = [0x3D6B47, 0x8B3A0F, 0x2C1A0E, 0x100503];
 
 const lerp  = (a,b,t) => a+(b-a)*t;
 const easeO = t => 1-Math.pow(1-t,3);
@@ -22,41 +27,90 @@ const map   = (v,a,b) => clamp((v-a)/(b-a),0,1);
 
 const canvas  = document.getElementById('showcase3d');
 const section = document.getElementById('spice-showcase');
-if (!canvas || !section) throw new Error('showcase3d: missing DOM');
+if (!canvas||!section) throw new Error('Missing DOM');
 
 /* ── Renderer ───────────────────────────────── */
-const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true, powerPreference:'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type    = THREE.VSMShadowMap;   // variance soft shadows
 renderer.toneMapping       = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.8;
+renderer.toneMappingExposure = 1.4;
+renderer.outputColorSpace  = THREE.SRGBColorSpace;
 
 const scene  = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 200);
 camera.position.set(0, 0, 8);
 
+/* ── HDR Room Environment (studio-quality reflections) ── */
+const pmrem  = new THREE.PMREMGenerator(renderer);
+const envMap = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environment    = envMap;   // all PBR materials pick this up automatically
+scene.environmentIntensity = 1.8;
+pmrem.dispose();
+
+/* ── Resize ─────────────────────────────────── */
+let W = section.offsetWidth, H = window.innerHeight;
 function resize() {
-  const w = section.offsetWidth, h = window.innerHeight;
-  renderer.setSize(w, h, false);
-  camera.aspect = w / h;
+  W = section.offsetWidth; H = window.innerHeight;
+  renderer.setSize(W, H, false);
+  camera.aspect = W / H;
   camera.updateProjectionMatrix();
+  composer.setSize(W, H);
+  bloomPass.resolution.set(W, H);
 }
+
+/* ── Lights ─────────────────────────────────── */
+
+// Key light — warm studio overhead softbox
+const key = new THREE.RectAreaLight(0xFFF4E0, 10, 5, 7);
+key.position.set(0, 7, 4);
+key.lookAt(0, 0, 0);
+scene.add(key);
+
+// Fill — cool-blue left panel
+const fillL = new THREE.RectAreaLight(0xC8E0FF, 5, 4, 6);
+fillL.position.set(-6, 2, 3);
+fillL.lookAt(0, 0, 0);
+scene.add(fillL);
+
+// Rim — warm amber right
+const rimR = new THREE.RectAreaLight(0xFFAA44, 7, 4, 6);
+rimR.position.set(6, 1, -2);
+rimR.lookAt(0, 0, 0);
+scene.add(rimR);
+
+// Bottom bounce
+const bounce = new THREE.RectAreaLight(0xFFEEDD, 3, 6, 4);
+bounce.position.set(0, -4, 2);
+bounce.lookAt(0, 0, 0);
+scene.add(bounce);
+
+// Subtle point for specular pop
+const specPt = new THREE.PointLight(0xFFFFFF, 2, 20);
+specPt.position.set(3, 6, 5);
+scene.add(specPt);
+
+/* ── Post-processing ────────────────────────── */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(W, H),
+  0.35,   // strength  — subtle glow on bright highlights
+  0.5,    // radius
+  0.82    // threshold — only brightest surfaces glow
+);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());   // correct color space output
+
+/* ── Now resize (needs composer) ────────────── */
 resize();
 window.addEventListener('resize', resize);
 
-/* ── Lights ─────────────────────────────────── */
-scene.add(new THREE.AmbientLight(0xFFF5E4, 1.0));
-const key = new THREE.DirectionalLight(0xFFE8C0, 3.5);
-key.position.set(5, 8, 6); key.castShadow = true; scene.add(key);
-const fill = new THREE.DirectionalLight(0xD4893A, 1.4);
-fill.position.set(-6, -4, 3); scene.add(fill);
-const rim = new THREE.DirectionalLight(0x2E7D6B, 1.2);
-rim.position.set(0, 2, -6); scene.add(rim);
-
 /* ── Load GLB models ────────────────────────── */
-const loader  = new GLTFLoader();
-const pivots  = Array(SPICES.length).fill(null);
+const loader   = new GLTFLoader();
+const pivots   = Array(SPICES.length).fill(null);
 const statusEl = document.getElementById('showcaseStatus');
 
 let pending = SPICES.length;
@@ -66,49 +120,46 @@ function onDone() {
 
 function makeFallback(i) {
   const g = new THREE.Group();
+  const colors = [0x3D7A4F, 0x8B3A0F, 0x3D1C02, 0x1A0A00];
   g.add(new THREE.Mesh(
-    new THREE.IcosahedronGeometry(1.4, 2),
-    new THREE.MeshStandardMaterial({ color: COLORS[i], roughness:0.6, metalness:0.15 })
+    new THREE.IcosahedronGeometry(1.4, 3),
+    new THREE.MeshStandardMaterial({ color:colors[i], roughness:0.4, metalness:0.2, envMapIntensity:2 })
   ));
   g.visible = false; scene.add(g); pivots[i] = g; onDone();
 }
 
 SPICES.forEach((sp, i) => {
   if (statusEl) statusEl.textContent = `Loading ${sp.name}…`;
+  loader.load(sp.file, (gltf) => {
+    const model = gltf.scene;
 
-  loader.load(
-    sp.file,
-    (gltf) => {
-      const model = gltf.scene;
+    // Normalise size to 3 units
+    const box  = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    model.scale.setScalar(3 / Math.max(size.x, size.y, size.z, 0.001));
 
-      /* Normalise to ~3 units tall */
-      const box  = new THREE.Box3().setFromObject(model);
-      const size = box.getSize(new THREE.Vector3());
-      model.scale.setScalar(3 / Math.max(size.x, size.y, size.z, 0.001));
+    // Centre on pivot
+    const box2 = new THREE.Box3().setFromObject(model);
+    model.position.sub(box2.getCenter(new THREE.Vector3()));
 
-      /* Centre on pivot origin */
-      const box2 = new THREE.Box3().setFromObject(model);
-      model.position.sub(box2.getCenter(new THREE.Vector3()));
-
-      /* Enable shadows + keep GLB materials (they're embedded & correct) */
-      model.traverse(c => {
-        if (!c.isMesh) return;
-        c.castShadow = c.receiveShadow = true;
+    // Boost material quality — keep GLB textures, amplify env reflections
+    model.traverse(c => {
+      if (!c.isMesh) return;
+      c.castShadow = c.receiveShadow = true;
+      const mats = Array.isArray(c.material) ? c.material : [c.material];
+      mats.forEach(m => {
+        m.envMapIntensity = 2.2;   // environment reflections
+        m.needsUpdate = true;
       });
+    });
 
-      const pivot = new THREE.Group();
-      pivot.add(model);
-      pivot.visible = false;
-      scene.add(pivot);
-      pivots[i] = pivot;
-      onDone();
-    },
-    undefined,
-    (err) => {
-      console.error('GLB load failed:', sp.file, err);
-      makeFallback(i);
-    }
-  );
+    const pivot = new THREE.Group();
+    pivot.add(model);
+    pivot.visible = false;
+    scene.add(pivot);
+    pivots[i] = pivot;
+    onDone();
+  }, undefined, () => makeFallback(i));
 });
 
 /* ── UI ─────────────────────────────────────── */
@@ -120,10 +171,10 @@ function setLabel(i) {
   if (i === lastLabel) return; lastLabel = i;
   if (nameEl)   nameEl.textContent   = SPICES[i].name;
   if (originEl) originEl.textContent = SPICES[i].origin;
-  dots.forEach((d, j) => d.classList.toggle('active', j === i));
+  dots.forEach((d,j) => d.classList.toggle('active', j===i));
 }
 
-/* ── Smooth state ───────────────────────────── */
+/* ── Smooth lerp state ──────────────────────── */
 const sX  = Array(4).fill(12);
 const sRY = Array(4).fill(0);
 const sOp = Array(4).fill(0);
@@ -161,8 +212,8 @@ const clock = new THREE.Clock();
 
     const pivot = pivots[i];
     if (!pivot) return;
-
     pivot.visible = sOp[i] > 0.01;
+
     if (pivot.visible) {
       const child = pivot.children[0];
       if (child) {
@@ -172,8 +223,8 @@ const clock = new THREE.Clock();
       }
       pivot.traverse(m => {
         if (m.isMesh && m.material) {
-          m.material.transparent = true;
-          m.material.opacity = clamp(sOp[i], 0, 1);
+          const mats = Array.isArray(m.material) ? m.material : [m.material];
+          mats.forEach(mat => { mat.transparent = true; mat.opacity = clamp(sOp[i], 0, 1); });
         }
       });
     }
@@ -181,5 +232,9 @@ const clock = new THREE.Clock();
   });
 
   if (bestOp > 0.3) setLabel(bestI);
-  renderer.render(scene, camera);
+
+  // Specular point light follows the camera slightly for dynamic highlights
+  specPt.position.set(3 + Math.sin(t*0.3)*2, 6, 5 + Math.cos(t*0.2));
+
+  composer.render();   // post-processed render (bloom + colour correct)
 })();
