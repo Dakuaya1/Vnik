@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 /* ── Config — update file names to match your GLB files ── */
 const SPICES = [
   { file:'cardamom.glb',    name:'Cardamom',     origin:'Kerala, India'  },
-  { file:'cinnamon.glb',    name:'Cinnamon',     origin:'Sri Lanka'      },
+  { file:'cinnimom.glb',    name:'Cinnamon',     origin:'Sri Lanka'      },
   { file:'cloves.glb',      name:'Cloves',       origin:'Zanzibar'       },
   { file:'blackpepper.glb', name:'Black Pepper', origin:'Malabar Coast'  },
 ];
