@@ -97,17 +97,18 @@ SPICES.forEach((sp, i) => {
       box.setFromObject(fbx);
       fbx.position.sub(box.getCenter(new THREE.Vector3()));
 
-      /* PBR materials */
+      /* Force solid PBR materials — FBX textures use absolute local paths
+         which 404 on the server, making models render black. Strip all
+         texture references and assign fresh materials by spice index.       */
+      const COLORS = [0x4A7C3F, 0x8B3A0F, 0x2C1A0E, 0x1A0A00]; // cardamom green, cinnamon brown, clove dark, pepper black
       fbx.traverse(c => {
         if (!c.isMesh) return;
         c.castShadow = c.receiveShadow = true;
-        if (!c.material?.map) {
-          c.material = new THREE.MeshStandardMaterial({ color: 0xCCAA77, roughness: 0.65, metalness: 0.12 });
-        } else {
-          c.material.roughness = 0.6;
-          c.material.metalness = 0.1;
-          c.material.needsUpdate = true;
-        }
+        c.material = new THREE.MeshStandardMaterial({
+          color     : COLORS[i] || 0xCCAA77,
+          roughness : 0.65,
+          metalness : 0.12,
+        });
       });
 
       const pivot = new THREE.Group();
