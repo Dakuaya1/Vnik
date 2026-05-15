@@ -1,6 +1,6 @@
-/* showcase3d.js — Scroll-driven spice 3D showcase (ES module) */
-import * as THREE from '/node_modules/three/build/three.module.js';
-import { FBXLoader } from '/node_modules/three/examples/jsm/loaders/FBXLoader.js';
+/* showcase3d.js — Scroll-driven spice 3D showcase (ES module, importmap) */
+import * as THREE from 'three';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
 const SPICES = [
   { file: 'cardommom.fbx',    name: 'Cardamom',     origin: 'Kerala, India'   },
