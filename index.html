@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="Background1.png">
+<link rel="preload" as="image" href="Background1.webp" type="image/webp">
 <link rel="stylesheet" href="styles.css">
 <script type="importmap">
 {
@@ -136,7 +136,10 @@
 <section id="hero">
   <!-- Hero Image Background -->
   <div class="hero-spice-bg">
-    <img src="Background1.png" alt="Rich assortment of spices - cardamom, cinnamon, cloves, foxnuts, ghee, dried fruits" class="hero-bg-image">
+    <picture>
+      <source srcset="Background1.webp" type="image/webp">
+      <img src="Background1.png" alt="Rich assortment of spices - cardamom, cinnamon, cloves, foxnuts, ghee, dried fruits" class="hero-bg-image">
+    </picture>
     <div class="spice-particles">
       <div class="spice-particle" style="left: 10%; animation-delay: 0s;"></div>
       <div class="spice-particle" style="left: 25%; animation-delay: -2s;"></div>
